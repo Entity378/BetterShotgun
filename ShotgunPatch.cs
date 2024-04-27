@@ -95,8 +95,8 @@ namespace BetterShotgun {
 
             // fire and reduce shell count - copied from vanilla
 
-            RoundManager.PlayRandomClip(gun.gunShootAudio, gun.gunShootSFX, randomize: true, 1f, 1840);
-            WalkieTalkie.TransmitOneShotAudio(gun.gunShootAudio, gun.gunShootSFX[0]);
+            RoundManager.PlayRandomClip(gun.GetComponent<ShotgunItem>().gunShootAudio, gun.GetComponent<ShotgunItem>().gunShootSFX, randomize: true, 1f, 1840);
+            WalkieTalkie.TransmitOneShotAudio(gun.GetComponent<ShotgunItem>().gunShootAudio, gun.GetComponent<ShotgunItem>().gunShootSFX[0]);
             gun.gunShootParticle.Play(withChildren: true);
 
             gun.isReloading = false;
