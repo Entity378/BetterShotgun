@@ -1,12 +1,31 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 using GameNetcodeStuff;
 using HarmonyLib;
 using UnityEngine;
 
 namespace BetterShotgun {
+    class ShotgunPatch
+    {
+        [HarmonyPatch(typeof(ShotgunItem), "ShootGun")]
+        [HarmonyPrefix]
+        static bool ReplaceShotgunCode(ShotgunItem __instance, Vector3 shotgunPosition, Vector3 shotgunForward)
+        {
+            NewShotgunHandler.ShootGun(__instance, shotgunPosition, shotgunForward);
+            return false;
+        }
+
+        [HarmonyPatch(typeof(StartOfRound), "ChooseNewRandomMapSeed")]
+        [HarmonyPostfix]
+        static void UpdateShotgunSeed(StartOfRound __instance)
+        {
+            // TODO: this should be networked
+            NewShotgunHandler.ShotgunRandom = new System.Random(__instance.randomMapSeed);
+            Debug.Log("Shotgun seed: " + __instance.randomMapSeed);
+        }
+    }
+
     class FadeOutLine : MonoBehaviour {
         private const float lifetime = 0.4f;
         private const float width = 0.02f;
@@ -84,7 +103,6 @@ namespace BetterShotgun {
 
         public static void ShootGun(ShotgunItem gun, Vector3 shotgunPosition, Vector3 shotgunForward) {
             PlayerControllerB holder = gun.playerHeldBy;
-
             bool playerFired = gun.isHeld && gun.playerHeldBy != null;
             if (playerFired) {
                 // correct offset to something more reasonable when a player fires
@@ -210,23 +228,6 @@ namespace BetterShotgun {
                 gun.gunBulletsRicochetAudio.transform.position = ray.GetPoint(hitInfo.distance - 0.5f);
                 gun.gunBulletsRicochetAudio.Play();
             }
-        }
-    }
-
-    class ShotgunPatch {
-        [HarmonyPatch(typeof(ShotgunItem), "ShootGun")]
-        [HarmonyPrefix]
-        static bool ReplaceShotgunCode(ShotgunItem __instance, Vector3 shotgunPosition, Vector3 shotgunForward) {
-            NewShotgunHandler.ShootGun(__instance, shotgunPosition, shotgunForward);
-            return false;
-        }
-
-        [HarmonyPatch(typeof(StartOfRound), "ChooseNewRandomMapSeed")]
-        [HarmonyPostfix]
-        static void UpdateShotgunSeed(StartOfRound __instance) {
-            // TODO: this should be networked
-            NewShotgunHandler.ShotgunRandom = new System.Random(__instance.randomMapSeed);
-            Debug.Log("Shotgun seed: " + __instance.randomMapSeed);
         }
     }
 }
