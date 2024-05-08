@@ -214,7 +214,7 @@ namespace BetterShotgun {
                 // doing 1:1 damage is too strong, but one pellet should always do damage
                 int damage = e.count / 2 + 1; // half rounded down plus one (1,2,2,3,3,4,4,5,5,6)
                 Debug.Log("SHOTGUN: Hit " + e.item + " with " + e.count + " pellets for " + damage + " damage");
-                e.item.HitEnemy(damage, gun.playerHeldBy, true);
+                e.item.HitEnemyOnLocalClient(damage, shotgunForward, gun.playerHeldBy, true);
             });
             counts.other.ForEach(o => {
                 int damage = o.count / 2 + 1;
