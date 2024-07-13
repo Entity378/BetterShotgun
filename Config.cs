@@ -10,19 +10,22 @@ public class ShotgunConfig {
     private static float tightPelletAngleLocal = 2.5f;
     private static int numLoosePelletsLocal = 7;
     private static float loosePelletAngleLocal = 10f;
+    private static bool enemiesFriendlyFireLocal = true;
 
     public static int numTightPellets = 3;
     public static float tightPelletAngle = 2.5f;
     public static int numLoosePellets = 7;
     public static float loosePelletAngle = 10f;
+    public static bool enemiesFriendlyFire = true;
 
-    private static void SetValues(int tightCount, float tightSpread, int looseCount, float looseSpread) {
+    private static void SetValues(int tightCount, float tightSpread, int looseCount, float looseSpread, bool enemiesFriendlyFireState) {
         numTightPellets = tightCount;
         tightPelletAngle = tightSpread;
         numLoosePellets = looseCount;
         loosePelletAngle = looseSpread;
+        enemiesFriendlyFire = enemiesFriendlyFireState;
     }
-    private static void SetToLocalValues() => SetValues(numTightPelletsLocal, tightPelletAngleLocal, numLoosePelletsLocal, loosePelletAngleLocal);
+    private static void SetToLocalValues() => SetValues(numTightPelletsLocal, tightPelletAngleLocal, numLoosePelletsLocal, loosePelletAngleLocal, enemiesFriendlyFireLocal);
 
     public static void LoadConfig(ConfigFile config) {
         Debug.Log(config);
@@ -31,17 +34,18 @@ public class ShotgunConfig {
         tightPelletAngleLocal = Mathf.Clamp(config.Bind("Pellets", "tightPelletAngle", 2.5f, "Pellet spread for tight grouping (degrees)").Value, 0f, 90f);
         numLoosePelletsLocal = Math.Clamp(config.Bind("Pellets", "loosePelletCount", 7, "Number of pellets for loose grouping").Value, 0, 100);
         loosePelletAngleLocal = Mathf.Clamp(config.Bind("Pellets", "loosePelletAngle", 10f, "Pellet spread for loose grouping (degrees)").Value, 0f, 90f);
-
+        enemiesFriendlyFireLocal = config.Bind("Enemies", "enemiesFriendlyFire", true, "Nutcracker can kill other enemies").Value;
         SetToLocalValues();
     }
 
     public static byte[] GetSettings() {
-        byte[] data = new byte[17];
+        byte[] data = new byte[18];
         data[0] = 1;
         Array.Copy(BitConverter.GetBytes(numTightPelletsLocal), 0, data, 1, 4);
         Array.Copy(BitConverter.GetBytes(tightPelletAngleLocal), 0, data, 5, 4);
         Array.Copy(BitConverter.GetBytes(numLoosePelletsLocal), 0, data, 9, 4);
         Array.Copy(BitConverter.GetBytes(loosePelletAngleLocal), 0, data, 13, 4);
+        Array.Copy(BitConverter.GetBytes(enemiesFriendlyFireLocal), 0, data, 17, 1);
         return data;
     }
 
@@ -52,6 +56,7 @@ public class ShotgunConfig {
                 tightPelletAngle = BitConverter.ToSingle(data, 5);
                 numLoosePellets = BitConverter.ToInt32(data, 9);
                 loosePelletAngle = BitConverter.ToSingle(data, 13);
+                enemiesFriendlyFire = BitConverter.ToBoolean(data, 17);
                 break;
             }
             default: {
@@ -84,9 +89,9 @@ public class ShotgunConfig {
 
     public static void OnReceiveSync(ulong clientID, FastBufferReader reader) {
         Debug.Log("SHOTGUN: Received config from host");
-        byte[] data = new byte[17];
+        byte[] data = new byte[18];
         try {
-            reader.ReadBytes(ref data, 17);
+            reader.ReadBytes(ref data, 18);
             SetSettings(data);
         }
         catch (Exception e) {

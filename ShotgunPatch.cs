@@ -162,7 +162,15 @@ namespace BetterShotgun {
             for (int i = 0; i < vectorList.Length; i++) {
                 Vector3 vect = vectorList[i];
                 ray = new Ray(shotgunPosition, vect);
-                RaycastHit[] hits = Physics.RaycastAll(ray, range, playerFired ? PLAYER_HIT_MASK : ENEMY_HIT_MASK, QueryTriggerInteraction.Collide);
+                RaycastHit[] hits;
+                if (ShotgunConfig.enemiesFriendlyFire) 
+                {
+                    hits = Physics.RaycastAll(ray, range, PLAYER_HIT_MASK, QueryTriggerInteraction.Collide);
+                }
+                else 
+                {
+                    hits = Physics.RaycastAll(ray, range, playerFired ? PLAYER_HIT_MASK : ENEMY_HIT_MASK, QueryTriggerInteraction.Collide);
+                }
                 Array.Sort(hits, (x, y) => x.distance.CompareTo(y.distance));
                 Vector3 end = shotgunPosition + vect * range;
                 Debug.Log("SHOTGUN: RaycastAll hit " + hits.Length + " things (" + playerFired + "," + thisPlayerFired + ")");
@@ -173,7 +181,7 @@ namespace BetterShotgun {
                         EnemyAI ai = null;
                         if (hittable is EnemyAICollisionDetect detect) ai = detect.mainScript;
                         if (ai != null) {
-                            if (!playerFired) continue; // enemy hit enemy
+                            if (!playerFired && !ShotgunConfig.enemiesFriendlyFire) continue; // enemy hit enemy
                             if (ai.isEnemyDead || ai.enemyHP <= 0 || !ai.enemyType.canDie) continue; // skip dead things
                         }
                         if (hittable is PlayerControllerB) counts.AddPlayerToCount(hittable as PlayerControllerB);
@@ -214,7 +222,7 @@ namespace BetterShotgun {
                 // doing 1:1 damage is too strong, but one pellet should always do damage
                 int damage = e.count / 2 + 1; // half rounded down plus one (1,2,2,3,3,4,4,5,5,6)
                 Debug.Log("SHOTGUN: Hit " + e.item + " with " + e.count + " pellets for " + damage + " damage");
-                e.item.HitEnemyOnLocalClient(damage, shotgunForward, gun.playerHeldBy, true);
+                e.item.HitEnemy(damage, gun.playerHeldBy, true);
             });
             counts.other.ForEach(o => {
                 int damage = o.count / 2 + 1;
