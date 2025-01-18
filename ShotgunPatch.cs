@@ -102,7 +102,7 @@ namespace BetterShotgun {
         }
 
         public static void ShootGun(ShotgunItem gun, Vector3 shotgunPosition, Vector3 shotgunForward) {
-            PlayerControllerB holder = gun.playerHeldBy;
+            // PlayerControllerB holder = gun.playerHeldBy;
             bool playerFired = gun.isHeld && gun.playerHeldBy != null;
             if (playerFired) {
                 // correct offset to something more reasonable when a player fires
@@ -110,7 +110,6 @@ namespace BetterShotgun {
             }
             bool thisPlayerFired = playerFired && gun.playerHeldBy == GameNetworkManager.Instance.localPlayerController;
             if (thisPlayerFired) gun.playerHeldBy.playerBodyAnimator.SetTrigger("ShootShotgun");
-
             // fire and reduce shell count - copied from vanilla
 
             RoundManager.PlayRandomClip(gun.GetComponent<ShotgunItem>().gunShootAudio, gun.GetComponent<ShotgunItem>().gunShootSFX, randomize: true, 1f, 1840);
@@ -159,6 +158,7 @@ namespace BetterShotgun {
             Ray ray;
             var counts = new CountHandler();
             // TODO: modify count tracker to handle distance pellets travel? sqrt(1-dist/range) seems reasonable for damage worth
+
             for (int i = 0; i < vectorList.Length; i++) {
                 Vector3 vect = vectorList[i];
                 ray = new Ray(shotgunPosition, vect);
@@ -171,6 +171,9 @@ namespace BetterShotgun {
                 {
                     hits = Physics.RaycastAll(ray, range, playerFired ? PLAYER_HIT_MASK : ENEMY_HIT_MASK, QueryTriggerInteraction.Collide);
                 }
+
+                gun.enemyColliders = hits;
+
                 Array.Sort(hits, (x, y) => x.distance.CompareTo(y.distance));
                 Vector3 end = shotgunPosition + vect * range;
                 Debug.Log("SHOTGUN: RaycastAll hit " + hits.Length + " things (" + playerFired + "," + thisPlayerFired + ")");
